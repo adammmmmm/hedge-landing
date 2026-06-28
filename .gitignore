@@ -1,0 +1,23 @@
+# Claude refs
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# Local task tracking (personal)
+tasks/
+
+# Secrets / env
+.env
+.env*.local
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+
+# Node (test tooling only — nothing is shipped)
+node_modules/
+npm-debug.log*

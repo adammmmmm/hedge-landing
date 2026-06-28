@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hedge — Lock the win, while it's live.</title>
+<meta name="description" content="Hedge.api turns your open tickets into decisions. Frontier models track live markets across 60+ books and alert you the instant a cash-out, hedge, or arbitrage lock appears.">
+<meta property="og:title" content="Hedge — Lock the win, while it's live.">
+<meta property="og:description" content="Frontier AI watches your live tickets and alerts you the instant a cash-out, hedge, or arbitrage lock appears.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#070d1a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%235bd2ff'/%3E%3Cstop offset='1' stop-color='%235b8cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%23070d1a'/%3E%3Ccircle cx='16' cy='16' r='8' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070d1a; --text:#eef3fb; --cyan:#5bd2ff; --blue:#5b8cff; --light:#9fd9ff;
+    --purple:#a78bff; --muted:#a7b6d4; --dim:#7e8ca5; --soft:#c4d2ea;
+    --green:#36e0a4; --aqua:#46d6ff; --gold:#ffce5a;
+    --line:rgba(91,140,255,.12); --line2:rgba(91,140,255,.06); --line3:rgba(91,140,255,.1);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Sora',sans-serif; -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility; overflow-x:hidden;
+  }
+  ::selection{ background:rgba(70,214,255,.3); }
+  a{ color:inherit; text-decoration:none; }
+  input{ font-family:'Sora',sans-serif; }
+  @keyframes floaty{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+  @keyframes fadeup{ from{opacity:0;transform:translateY(26px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes glowpulse{ 0%,100%{opacity:.45} 50%{opacity:.95} }
+  @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.2} }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  .shell{ position:relative; max-width:1440px; margin:0 auto; overflow:hidden; }
+  .glow{ position:absolute; pointer-events:none; z-index:0; }
+  .glow.top{ top:-120px; left:50%; transform:translateX(-50%); width:900px; height:600px;
+    max-width:130vw; background:radial-gradient(circle,rgba(91,140,255,.22),transparent 62%); animation:glowpulse 7s ease-in-out infinite; }
+  .glow.mid{ top:620px; right:-160px; width:620px; height:620px;
+    background:radial-gradient(circle,rgba(70,214,255,.14),transparent 64%); }
+  .wrap{ position:relative; z-index:2; }
+
+  /* ---- nav ---- */
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:26px 56px; }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand .dot{ width:30px; height:30px; border-radius:50%;
+    background:linear-gradient(135deg,#5bd2ff,#5b8cff); box-shadow:0 0 26px rgba(91,210,255,.6); }
+  .brand b{ font-weight:700; font-size:21px; letter-spacing:.01em; }
+  .navlinks{ display:flex; align-items:center; gap:34px; font-size:15px; color:var(--muted); font-weight:300; }
+  .navlinks a:hover{ color:var(--text); }
+  .nav-cta{ color:#fff; border:1px solid rgba(91,210,255,.4); font-weight:400; padding:10px 22px;
+    border-radius:30px; background:rgba(91,210,255,.08); cursor:pointer; }
+  .nav-cta:hover{ background:rgba(91,210,255,.16); }
+
+  /* ---- hero ---- */
+  .hero{ padding:80px 56px 96px; display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center; }
+  .hero-copy{ animation:fadeup .9s both; }
+  .pill{ display:inline-flex; align-items:center; gap:9px; font-size:13px; color:var(--light);
+    border:1px solid rgba(91,210,255,.25); padding:8px 16px; border-radius:30px; margin-bottom:30px;
+    font-weight:300; letter-spacing:.02em; }
+  .pill .live{ width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 9px var(--cyan); animation:blink 1.5s infinite; }
+  h1{ font-size:clamp(46px,6.4vw,78px); line-height:.98; font-weight:800; margin:0 0 26px; letter-spacing:-.035em; }
+  .grad{ background:linear-gradient(120deg,#9fd9ff,#5b8cff 55%,#a78bff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lede{ font-size:20px; line-height:1.6; color:var(--muted); font-weight:300; margin:0 0 38px; max-width:440px; }
+  .capture{ display:flex; gap:11px; max-width:430px; margin-bottom:22px; }
+  .capture input{ flex:1; background:rgba(255,255,255,.04); border:1px solid rgba(91,210,255,.22);
+    border-radius:30px; padding:16px 22px; color:var(--text); font-size:15px; font-weight:300; outline:none; }
+  .capture input:focus{ border-color:rgba(91,210,255,.5); }
+  .btn{ cursor:pointer; color:#06122a; background:linear-gradient(135deg,#9fd9ff,#5b8cff);
+    font-weight:600; font-size:15px; padding:16px 30px; border:0; border-radius:30px; white-space:nowrap;
+    box-shadow:0 10px 40px rgba(91,140,255,.45); }
+  .btn:hover{ filter:brightness(1.05); }
+  .joined{ font-size:14px; color:var(--cyan); margin-bottom:10px; font-weight:300; display:none; }
+  .joined.show{ display:block; }
+  .hero-visual{ position:relative; display:flex; justify-content:center; animation:fadeup .9s .18s both; }
+  .phone{ width:300px; border-radius:44px; padding:12px; background:rgba(255,255,255,.04);
+    border:1px solid rgba(91,210,255,.22); box-shadow:0 50px 110px rgba(0,0,0,.6),0 0 80px rgba(91,140,255,.18);
+    animation:floaty 6.5s ease-in-out infinite; }
+  .phone .screen{ border-radius:33px; overflow:hidden; background:#091228; position:relative; }
+  .notch{ height:28px; display:flex; justify-content:center; align-items:flex-end; padding-bottom:5px; }
+  .notch span{ width:80px; height:6px; border-radius:3px; background:#1c2742; }
+  .phone-body{ padding:20px 18px 26px; }
+  .greet{ font-size:13px; color:var(--muted); font-weight:300; margin-bottom:4px; }
+  .greet-h{ font-size:19px; font-weight:600; margin-bottom:20px; }
+  .pcard{ background:rgba(255,255,255,.03); border:1px solid rgba(91,210,255,.1); border-radius:18px; padding:14px; margin-bottom:10px; }
+  .pcard .top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .pcard .m{ font-size:14px; font-weight:600; }
+  .pcard .e{ font-size:18px; font-weight:700; color:var(--cyan); }
+  .pcard .sub{ font-size:11px; color:var(--dim); font-weight:300; }
+  .edge-float{ position:absolute; bottom:8px; left:-26px; width:210px; background:rgba(11,20,40,.86);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(91,210,255,.3);
+    border-radius:18px; padding:16px; box-shadow:0 24px 60px rgba(0,0,0,.5); animation:floaty 5.5s ease-in-out .8s infinite; }
+  .edge-float .lbl{ font-size:11px; color:var(--light); font-weight:300; margin-bottom:8px; }
+  .edge-float .big{ font-size:34px; font-weight:700; color:var(--cyan); line-height:1; }
+  .edge-float .cap{ font-size:11px; color:var(--dim); font-weight:300; margin-top:6px; }
+
+  /* ---- live feed ---- */
+  .feed{ padding:70px 56px; border-top:1px solid var(--line3); }
+  .feed-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:34px; gap:24px; flex-wrap:wrap; }
+  .eyebrow{ font-size:14px; color:var(--light); font-weight:300; letter-spacing:.04em; margin-bottom:10px; }
+  .feed-head h2{ font-size:clamp(30px,4vw,40px); font-weight:700; margin:0; letter-spacing:-.025em; }
+  .feed-stat{ text-align:right; }
+  .feed-stat .n{ font-size:46px; font-weight:800; color:var(--cyan); line-height:1; }
+  .feed-stat .l{ font-size:13px; color:var(--dim); font-weight:300; }
+  .table{ border:1px solid var(--line); border-radius:20px; overflow:hidden; background:rgba(255,255,255,.02); }
+  .trow{ display:grid; grid-template-columns:1.5fr .8fr 1.1fr 1.2fr .7fr .75fr; gap:10px; align-items:center; padding:18px 26px; }
+  .thead{ font-size:12px; color:var(--dim); font-weight:300; letter-spacing:.05em; border-bottom:1px solid var(--line3); }
+  .tbody .trow{ border-bottom:1px solid var(--line2); }
+  .tbody .trow:last-child{ border-bottom:0; }
+  .ev{ display:flex; align-items:center; gap:10px; }
+  .ev .fresh{ width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 9px var(--cyan); flex-shrink:0; }
+  .ev .m{ font-size:16px; font-weight:600; }
+  .ev .lg{ font-size:12px; color:var(--dim); font-weight:300; margin-top:2px; }
+  .tag{ font-size:10px; font-weight:600; letter-spacing:.04em; padding:4px 9px; border-radius:6px; white-space:nowrap; border:1px solid currentColor; }
+  .you{ font-size:14px; color:var(--soft); font-weight:300; }
+  .leg{ font-size:13px; color:var(--muted); font-weight:300; }
+  .leg .b{ color:var(--dim); }
+  .edge{ font-size:18px; font-weight:700; color:var(--cyan); }
+  .lock{ font-size:16px; font-weight:600; text-align:right; }
+  .ralign{ text-align:right; }
+
+  /* ---- features ---- */
+  .features{ padding:60px 56px 80px; }
+  .features h2{ font-size:clamp(30px,4vw,40px); font-weight:700; margin:0 0 48px; letter-spacing:-.025em; max-width:600px; }
+  .fgrid{ display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid rgba(91,140,255,.14); }
+  .fcell{ padding:30px 26px 0; border-right:1px solid var(--line3); }
+  .fcell:last-child{ border-right:0; }
+  .fcell .gi{ color:var(--cyan); margin-bottom:16px; height:38px; display:flex; align-items:flex-end; }
+  .fcell .gi svg{ width:34px; height:34px; filter:drop-shadow(0 0 10px rgba(91,210,255,.4)); }
+  .fcell h3{ font-size:19px; font-weight:600; margin:0 0 9px; }
+  .fcell p{ font-size:14px; line-height:1.6; color:var(--muted); font-weight:300; margin:0; }
+
+  /* ---- stats ---- */
+  .stats{ padding:56px; display:grid; grid-template-columns:repeat(4,1fr); gap:30px; border-top:1px solid var(--line); text-align:center; }
+  .stat .n{ font-size:clamp(40px,5vw,52px); font-weight:800; }
+  .stat .n small{ font-size:24px; }
+  .stat .l{ font-size:14px; color:var(--dim); font-weight:300; margin-top:6px; }
+
+  /* ---- CTA ---- */
+  .cta{ text-align:center; padding:100px 56px; border-top:1px solid var(--line);
+    background:radial-gradient(700px 400px at 50% 120%,rgba(91,140,255,.2),transparent 65%); }
+  .cta h2{ font-size:clamp(40px,6vw,60px); font-weight:800; margin:0 0 20px; letter-spacing:-.035em; line-height:1.02; }
+  .cta p{ font-size:19px; color:var(--muted); font-weight:300; margin:0 auto 34px; max-width:480px; }
+  .cta .capture{ max-width:460px; margin:0 auto; }
+
+  /* ---- footer ---- */
+  footer{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:28px 56px; border-top:1px solid var(--line3); font-size:13px; color:var(--dim); font-weight:300; }
+  footer .fb{ display:flex; align-items:center; gap:10px; }
+  footer .fb .d{ width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg,#5bd2ff,#5b8cff); }
+  footer .fb b{ color:var(--soft); font-weight:300; }
+
+  /* ---- responsive ---- */
+  @media (max-width:980px){
+    nav{ padding:20px 24px; }
+    .navlinks{ gap:20px; }
+    .navlinks .hide-sm{ display:none; }
+    .hero{ grid-template-columns:1fr; padding:48px 24px 64px; gap:56px; }
+    .hero-visual{ order:-1; }
+    .feed,.features,.stats,.cta{ padding-left:24px; padding-right:24px; }
+    .feed{ padding-top:56px; padding-bottom:56px; }
+    .fgrid{ grid-template-columns:repeat(2,1fr); }
+    .fcell:nth-child(2){ border-right:0; }
+    .fcell{ padding-bottom:24px; border-bottom:1px solid var(--line3); }
+    .stats{ grid-template-columns:repeat(2,1fr); gap:24px 30px; padding:40px 24px; }
+    .cta{ padding:72px 24px; }
+    footer{ padding:24px; }
+    /* table -> stacked cards */
+    .thead{ display:none; }
+    .tbody .trow{ grid-template-columns:1fr 1fr; gap:6px 12px; padding:16px 18px; }
+    .ev{ grid-column:1 / -1; }
+    .you::before{ content:"You: "; color:var(--dim); }
+    .leg::before{ content:"Hedge: "; color:var(--dim); }
+    .lock{ text-align:left; }
+    .edge,.lock{ font-size:15px; }
+  }
+  @media (max-width:520px){
+    h1{ font-size:44px; }
+    .capture{ flex-direction:column; }
+    .capture .btn{ width:100%; }
+    .edge-float{ left:auto; right:-8px; width:180px; }
+    .feed-head{ flex-direction:column; align-items:flex-start; }
+    .feed-stat{ text-align:left; }
+  }
+
+  /* self-test badge */
+  #selftest{ position:fixed; bottom:12px; right:12px; z-index:99; font-family:'IBM Plex Mono',monospace;
+    font-size:12px; padding:8px 12px; border-radius:8px; display:none; }
+  #selftest.pass{ display:block; background:rgba(54,224,164,.15); color:var(--green); border:1px solid var(--green); }
+  #selftest.fail{ display:block; background:rgba(255,107,125,.15); color:#ff6b7d; border:1px solid #ff6b7d; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="glow top"></div>
+  <div class="glow mid"></div>
+  <div class="wrap">
+
+    <!-- nav -->
+    <nav>
+      <div class="brand"><span class="dot"></span><b>Hedge</b></div>
+      <div class="navlinks">
+        <a href="#feed" class="hide-sm">Product</a>
+        <a href="#features" class="hide-sm">Models</a>
+        <a href="#cta" class="hide-sm">Pricing</a>
+        <span class="nav-cta" data-join>Get access</span>
+      </div>
+    </nav>
+
+    <!-- hero -->
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="pill"><span class="live"></span>Frontier AI · now in private beta</div>
+        <h1>Lock the win,<br><span class="grad">while it's live.</span></h1>
+        <p class="lede">Hedge ingests your tickets and watches every live line. When a cash-out, hedge, or arbitrage can turn your bet into a guaranteed win, you'll know in the moment — frontier models, millisecond edge.</p>
+        <form class="capture" data-capture>
+          <input type="email" name="email" placeholder="Enter your email" aria-label="Email" required>
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+          <button class="btn" type="submit">Join waitlist</button>
+        </form>
+        <div class="joined" data-joined>✓ You're on the list — we'll be in touch.</div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="phone">
+          <div class="screen">
+            <div class="notch"><span></span></div>
+            <div class="phone-body">
+              <div class="greet">Good evening, sharp.</div>
+              <div class="greet-h">3 new edges found</div>
+              <div data-phone></div>
+            </div>
+          </div>
+        </div>
+        <div class="edge-float">
+          <div class="lbl">Free money locked</div>
+          <div class="big">+<span data-edgeavg>0.0</span>%</div>
+          <div class="cap">across <span data-markets>0</span> live windows</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- live feed -->
+    <section class="feed" id="feed">
+      <div class="feed-head">
+        <div>
+          <div class="eyebrow">LIVE OPPORTUNITY FEED</div>
+          <h2>Every edge, the moment it appears.</h2>
+        </div>
+        <div class="feed-stat"><div class="n"><span data-edgeavg>0.0</span>%</div><div class="l">average locked edge</div></div>
+      </div>
+      <div class="table">
+        <div class="trow thead">
+          <span>EVENT</span><span>TYPE</span><span>YOUR POSITION</span><span>HEDGE LEG</span><span>EDGE</span><span class="ralign">LOCK / $1K</span>
+        </div>
+        <div class="tbody" data-feed></div>
+      </div>
+    </section>
+
+    <!-- features -->
+    <section class="features" id="features">
+      <h2>Frontier intelligence, distilled to one number.</h2>
+      <div class="fgrid">
+        <div class="fcell">
+          <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H6a2 2 0 0 1-2-2 2 2 0 0 0 0-4Z"/><path d="M14.5 6.5v11" stroke-dasharray="1.5 2.2"/></svg></div>
+          <h3>Ingest your tickets</h3><p>Singles, parlays, or the teams you follow — tracked live, automatically.</p>
+        </div>
+        <div class="fcell">
+          <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3.6l2.4-6.5 4 13 2.4-6.5H21"/></svg></div>
+          <h3>In-game edge models</h3><p>Frontier AI prices cash-out, hedge, and arbitrage as the live odds swing.</p>
+        </div>
+        <div class="fcell">
+          <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5.5c0 4 3 6.9 7 7.5 4-.6 7-3.5 7-7.5V6l-7-3Z"/><path d="m9 11.5 2 2 4-4"/></svg></div>
+          <h3>Guaranteed-win math</h3><p>We compute the exact hedge stake to lock free money — whatever the result.</p>
+        </div>
+        <div class="fcell">
+          <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5 5.5 13.5H11l-1 8 8.5-11.5H13l0-7.5Z"/></svg></div>
+          <h3>Millisecond timing</h3><p>Some windows last only seconds. Low-latency alerts reach you the instant they open.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- stats -->
+    <section class="stats">
+      <div class="stat"><div class="n" style="color:var(--light)"><span data-books>0</span>+</div><div class="l">sportsbooks connected</div></div>
+      <div class="stat"><div class="n"><span data-scanned>0.00</span>M</div><div class="l">bets modeled daily</div></div>
+      <div class="stat"><div class="n" style="color:var(--cyan)"><span data-latency>0</span><small>ms</small></div><div class="l">scan latency</div></div>
+      <div class="stat"><div class="n"><span data-acc>0</span>%</div><div class="l">model confidence</div></div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="cta">
+      <h2>Stop guessing.<br><span class="grad">Start locking.</span></h2>
+      <p>This is hedge.api — the platform that unlocks free money via frontier edge models. Be first to the beta.</p>
+      <form class="capture" data-capture>
+        <input type="email" name="email" placeholder="Enter your email" aria-label="Email" required>
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <button class="btn" type="submit">Join waitlist</button>
+      </form>
+      <div class="joined" data-joined style="margin-top:14px">✓ You're on the list — we'll be in touch.</div>
+    </section>
+
+    <!-- footer -->
+    <footer>
+      <div class="fb"><span class="d"></span><b>Hedge</b> © <span data-year>2026</span></div>
+      <div>Bet responsibly · 21+ · For entertainment in legal jurisdictions</div>
+    </footer>
+
+  </div>
+</div>
+
+<div id="selftest"></div>
+
+<script>
+"use strict";
+(function(){
+  // ---- simulation (ported from the design's DCLogic) ----
+  const SEED = [
+    { lg:'MLB', m:'Dodgers · Padres',   you:'Over 2.5 runs',  mkt:'Under 2.5 @ +130',   type:'ARB',      b:'DraftKings', edge:5.1 },
+    { lg:'NBA', m:'Celtics · Heat',     you:'Celtics ML',     mkt:'Heat +6.5 @ +120',   type:'HEDGE',    b:'FanDuel',    edge:4.2 },
+    { lg:'NFL', m:'Chiefs · Bills',     you:'Over 48.5',      mkt:'Under 50.5 @ +105',  type:'ARB',      b:'ESPN BET',   edge:3.6 },
+    { lg:'EPL', m:'Arsenal · Spurs',    you:'Arsenal -0.5',   mkt:'Draw @ +260',        type:'HEDGE',    b:'Caesars',    edge:2.8 },
+    { lg:'UFC', m:'Adesanya · Pereira', you:'Adesanya KO',    mkt:'Pereira ML @ +180',  type:'ARB',      b:'FanDuel',    edge:6.3 },
+    { lg:'ATP', m:'Alcaraz · Sinner',   you:'Alcaraz -1.5',   mkt:'Sinner +1.5 @ -110', type:'CASH-OUT', b:'DraftKings', edge:2.2 },
+    { lg:'NHL', m:'Oilers · Avalanche', you:'Oilers PL',      mkt:'Avs +1.5 @ +140',    type:'CASH-OUT', b:'Caesars',    edge:3.1 }
+  ];
+  const TYPE_COLOR = { 'ARB':'#36e0a4', 'HEDGE':'#46d6ff', 'CASH-OUT':'#ffce5a' };
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+  const state = {
+    opps: SEED.map(o => ({ ...o, fresh:false })),
+    progress: 0,
+    latency: 38,
+    scanned: 2.41,
+    joined: false
+  };
+  let tick = 0;
+
+  function renderVals(){
+    const p = easeOut(state.progress);
+    const done = state.progress >= 1;
+    const rows = state.opps.map(o => ({
+      lg:o.lg, m:o.m, mkt:o.mkt, you:o.you, type:o.type, b:o.b,
+      typeColor: TYPE_COLOR[o.type] || '#46d6ff',
+      edgeStr: '+' + o.edge.toFixed(1) + '%',
+      profit: '$' + Math.round(o.edge * 73),
+      fresh: !!o.fresh
+    }));
+    return {
+      rows,
+      rowsB: rows.slice(0, 3),
+      books: Math.round(60 * p),
+      markets: Math.round(142 * p),
+      edgeAvg: (6.4 * p).toFixed(1),
+      acc: Math.round(97 * p),
+      scanned: done ? state.scanned.toFixed(2) : (2.41 * p).toFixed(2),
+      latency: done ? state.latency : Math.round(38 + (1 - p) * 70)
+    };
+  }
+
+  // ---- DOM rendering ----
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const feedEl = $('[data-feed]');
+  const phoneEl = $('[data-phone]');
+
+  function setText(sel, val){ $$(sel).forEach(n => n.textContent = val); }
+
+  function renderFeed(v){
+    feedEl.innerHTML = v.rows.map(r => `
+      <div class="trow">
+        <div class="ev">
+          ${r.fresh ? '<span class="fresh"></span>' : ''}
+          <div><div class="m">${r.m}</div><div class="lg">${r.lg}</div></div>
+        </div>
+        <div><span class="tag" style="color:${r.typeColor}">${r.type}</span></div>
+        <div class="you">${r.you}</div>
+        <div class="leg">${r.mkt} <span class="b">· ${r.b}</span></div>
+        <div class="edge">${r.edgeStr}</div>
+        <div class="lock">${r.profit}</div>
+      </div>`).join('');
+  }
+
+  function renderPhone(v){
+    phoneEl.innerHTML = v.rowsB.map(r => `
+      <div class="pcard">
+        <div class="top"><span class="m">${r.m}</span><span class="e">${r.edgeStr}</span></div>
+        <div class="sub">${r.type} · ${r.lg} · lock ${r.profit}</div>
+      </div>`).join('');
+  }
+
+  function renderStats(v){
+    setText('[data-books]', v.books);
+    setText('[data-markets]', v.markets);
+    setText('[data-edgeavg]', v.edgeAvg);
+    setText('[data-acc]', v.acc);
+    setText('[data-scanned]', v.scanned);
+    setText('[data-latency]', v.latency);
+  }
+
+  function fullRender(){
+    const v = renderVals();
+    renderFeed(v);
+    renderPhone(v);
+    renderStats(v);
+    return v;
+  }
+
+  function step(){
+    tick++;
+    const ramping = state.progress < 1;
+    let dataChanged = false;
+    if (ramping) state.progress = Math.min(1, tick / 30);
+    if (tick % 26 === 0){
+      const opps = state.opps.map(o => ({ ...o, fresh:false }));
+      const i = Math.floor(Math.random() * opps.length);
+      let e = opps[i].edge + (Math.random() - 0.45) * 0.9;
+      e = Math.max(0.6, Math.min(9.7, e));
+      opps[i].edge = e;
+      // surface the re-priced opportunity at the top; only the newest row is "fresh"
+      const [f] = opps.splice(i, 1);
+      f.fresh = true;
+      opps.unshift(f);
+      state.opps = opps;
+      state.latency = Math.round(34 + Math.random() * 12);
+      state.scanned = +(state.scanned + 0.01 + Math.random() * 0.02).toFixed(2);
+      dataChanged = true;
+    }
+    if (ramping || dataChanged){
+      const v = renderVals();
+      renderStats(v);
+      if (dataChanged){ renderFeed(v); renderPhone(v); }
+    }
+  }
+
+  // ---- email capture ----
+  // Lightweight, no-backend waitlist via Formspree. Create a free form at
+  // https://formspree.io, then paste its form ID below (the bit after /f/ in the
+  // endpoint, e.g. "xeoqlabz"). Leave blank to run UI-only with no submission.
+  const FORMSPREE_ID = "";
+
+  function showJoined(form){
+    state.joined = true;
+    if (form){
+      const j = form.parentElement.querySelector('[data-joined]');
+      if (j) j.classList.add('show');
+    } else {
+      $$('[data-joined]').forEach(n => n.classList.add('show'));
+    }
+  }
+
+  async function submitForm(form){
+    const input = form.querySelector('input[type=email]');
+    showJoined(form);                       // optimistic — confirm instantly
+    if (FORMSPREE_ID && input && input.value){
+      try {
+        await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+          method:'POST',
+          headers:{ 'Accept':'application/json' },
+          body: new FormData(form)
+        });
+      } catch (e) { /* already confirmed in UI; nothing to do */ }
+    }
+    if (input) input.value = '';
+  }
+
+  $$('[data-capture]').forEach(f => f.addEventListener('submit', e => {
+    e.preventDefault();
+    if (!f.checkValidity()){ f.reportValidity(); return; }
+    submitForm(f);
+  }));
+
+  // nav "Get access" -> jump to the CTA form
+  $$('[data-join]').forEach(b => b.addEventListener('click', () => {
+    const cta = document.getElementById('cta');
+    if (cta) cta.scrollIntoView({ behavior:'smooth' });
+    const inp = document.querySelector('#cta input[type=email]');
+    if (inp) setTimeout(() => inp.focus(), 450);
+  }));
+
+  setText('[data-year]', new Date().getFullYear());
+
+  // ---- boot ----
+  fullRender();
+  const iv = setInterval(step, 50);
+
+  // ---- self-test (?test=1) ----
+  if (/[?&]test=1/.test(location.search)){
+    const assert = (c, msg) => { if (!c) throw new Error(msg); };
+    // fast-forward the ramp deterministically instead of waiting ~1.5s
+    for (let k = 0; k < 40; k++) step();
+    setTimeout(() => {
+      const badge = $('#selftest');
+      try {
+        assert(feedEl.children.length === SEED.length, 'feed should render all rows');
+        const v = renderVals();
+        assert(state.progress >= 1, 'ramp should complete');
+        assert(v.books === 60, 'books should ramp to 60, got ' + v.books);
+        assert(v.markets === 142, 'markets should ramp to 142, got ' + v.markets);
+        assert(v.acc === 97, 'acc should ramp to 97, got ' + v.acc);
+        assert(parseFloat(v.edgeAvg) === 6.4, 'edgeAvg should be 6.4, got ' + v.edgeAvg);
+        assert(phoneEl.children.length === 3, 'phone should show 3 edges');
+        assert($('[data-feed] .tag') && $('[data-feed] .tag').textContent.length > 0, 'rows should have type tags');
+        assert(feedEl.children[0].querySelector('.fresh'), 'top row should be fresh after updates');
+        assert(feedEl.querySelectorAll('.fresh').length === 1, 'only one row should be fresh');
+        showJoined();
+        assert($('[data-joined]').classList.contains('show'), 'join should reveal confirmation');
+        badge.className = 'pass';
+        badge.textContent = '✓ self-test passed (' + SEED.length + ' rows)';
+        console.log('%cSELFTEST PASS', 'color:#36e0a4');
+      } catch (err) {
+        badge.className = 'fail';
+        badge.textContent = '✗ ' + err.message;
+        console.error('SELFTEST FAIL', err);
+      }
+    }, 50);
+  }
+})();
+</script>
+</body>
+</html>
