@@ -30,12 +30,12 @@ You placed the bet. Then the game swung. Most people sweat it out.
 
 ## How it works
 
-| | | |
-|---|---|---|
-| **◇ Ingest your tickets** | Singles, parlays, or just the teams you follow. Tracked live, automatically. | |
-| **○ In-game edge models** | Frontier AI prices cash-out, hedge, and arbitrage as the odds swing. | |
-| **△ Guaranteed-win math** | The exact other-side stake to lock free money — whatever the final score. | |
-| **◷ Millisecond timing** | Some windows last seconds. Low-latency alerts hit your hand the instant they open. | |
+| Step | What happens |
+|---|---|
+| 🎟️ **Ingest your tickets** | Singles, parlays, or just the teams you follow. Tracked live, automatically. |
+| 📈 **In-game edge models** | Frontier AI prices cash-out, hedge, and arbitrage as the odds swing. |
+| 🔒 **Guaranteed-win math** | The exact other-side stake to lock free money — whatever the final score. |
+| ⚡ **Millisecond timing** | Some windows last seconds. Low-latency alerts hit your hand the instant they open. |
 
 ---
 
