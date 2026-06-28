@@ -10,7 +10,7 @@
 [![books](https://img.shields.io/badge/60%2B-sportsbooks-9fd9ff?style=for-the-badge)](#)
 [![latency](https://img.shields.io/badge/~38ms-scan%20latency-36e0a4?style=for-the-badge)](#)
 
-**[→ Join the waitlist](https://adammmmmm.github.io/hedge-landing/)** · *be first to the edge*
+**[→ Join the waitlist](https://hedgeapi.com/)** · *be first to the edge*
 
 </div>
 
@@ -54,7 +54,7 @@ Hedge.api is in **private beta**. The waitlist is open.
 
 <div align="center">
 
-### [→ Get early access](https://adammmmmm.github.io/hedge-landing/)
+### [→ Get early access](https://hedgeapi.com/)
 
 </div>
 
